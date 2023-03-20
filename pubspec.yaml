@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   idea_widget_preview: ^0.0.4
   flutter_svg: ^2.0.4
+  file_picker: ^5.2.6
+  open_file: ^2.1.1
 
 dev_dependencies:
   flutter_test:
