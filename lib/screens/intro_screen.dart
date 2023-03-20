@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mmr_telemetry/shared/drawer.dart';
 import 'package:open_file/open_file.dart';
 
 class IntroScreen extends StatelessWidget {
@@ -10,8 +11,10 @@ class IntroScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      primary: true,
       appBar: AppBar(
-        elevation: 0,
+        automaticallyImplyLeading: false,
+        elevation: 2,
         title: Row(
             children: <Widget>[
               Container(
@@ -48,10 +51,19 @@ class IntroScreen extends StatelessWidget {
                     )),
               )
             ]),
-        actions: <Widget>[
+        actions:
+        <Widget>[
+          const VerticalDivider(
+            width: 1,
+            thickness: 0.5,
+            indent: 10,
+            endIndent: 10,
+            color: Colors.white,
+          ),
           IconButton(
-              padding: const EdgeInsets.only(right: 30.0),
-              icon: const Icon(Icons.add, color: Colors.white, size: 40,),
+
+              icon: const Icon(Icons.add_sharp, color: Colors.white, size: 30, ),
+              padding: const EdgeInsets.only(right: 20.0, left: 20.0),
               tooltip: 'Open new csv file',
               onPressed: () async {
                 final result = await FilePicker.platform.pickFiles(
@@ -75,9 +87,29 @@ class IntroScreen extends StatelessWidget {
                 }
                 openFile(file);
               }
-          )],
-      )
-    );
+          ),
+          const VerticalDivider(
+            width: 5,
+            thickness: 0.5,
+            indent: 10,
+            endIndent: 10,
+            color: Colors.white,
+          ),
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.chrome_reader_mode_sharp, color: Colors.white, size: 25,),
+              padding: const EdgeInsets.only(right: 20.0, left: 20.0),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: "Expand Channels selector",
+            ),
+          ),],
+      ),
+      endDrawer: Container(
+        width: MediaQuery.of(context).size.width / 5,
+        margin: const EdgeInsets.only(top: 57.0),
+        child: const MenuDrawer(),
+      ),
+      );
   }
 
   void openFile(PlatformFile file){

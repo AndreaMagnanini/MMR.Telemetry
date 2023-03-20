@@ -68,6 +68,8 @@ flutter:
      - assets/mmr-brandlogo.svg
      - assets/mmrtext.svg
      - assets/mmr.svg
+     - assets/single-chart.svg
+     - assets/multiple-charts.svg
      - assets/mmrtextlogo.svg
      - assets/newlogo.svg
      - assets/finalcutlogo.svg

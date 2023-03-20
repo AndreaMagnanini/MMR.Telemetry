@@ -33,7 +33,7 @@ class AppPreview extends PreviewProvider {
     Preview(
       title: "AppPreview",
       builder: (BuildContext context) {
-        return MyApp();
+        return const MyApp();
       }
     )
   ];
