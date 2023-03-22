@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
           primary:  Colors.blueGrey.shade900,
           secondary: Colors.blueGrey.shade600,
         ),
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.purple)),
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.purple, fontFamily: 'Ubuntu')),
       ),
       home: const IntroScreen(title: 'MMR - Telemetry'),
     );
