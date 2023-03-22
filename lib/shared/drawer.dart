@@ -1,27 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:mmr_telemetry/telemetry/channel.dart';
 import 'package:mmr_telemetry/telemetry/telemetry.dart';
 
 class MenuDrawer extends StatefulWidget {
-  const MenuDrawer({Key? key}) : super(key: key);
+  MenuDrawer({super.key, required this.data});
+  List<List<dynamic>> data;
 
   @override
-  State<MenuDrawer> createState() => _State();
+  State<MenuDrawer> createState() => MenuDrawerState(data);
 }
 
-class _State extends State<MenuDrawer> {
+class MenuDrawerState extends State<MenuDrawer> {
+  MenuDrawerState(this.data);
+  List<List<dynamic>> data;
+
   @override
   Widget build(BuildContext context) {
+    List<Channel> channels = buildChannels(data);
+
     return Drawer(
       elevation: 0,
       backgroundColor: Colors.blueGrey.shade900,
       child: ListView(
-        children: buildMenuItems(context),
+        children: buildMenuItems(context, channels),
       ),
     );
   }
 
   Telemetry? telemetry;
-  List<Widget> buildMenuItems(BuildContext context){
+  List<Widget> buildMenuItems(BuildContext context, List<Channel> channels){
     final List<String> menuTitles = [
       'Home',
       'Play'
@@ -51,5 +58,20 @@ class _State extends State<MenuDrawer> {
       ));
     }
     return menuItems;
+  }
+
+  buildChannels(List<List> data) {
+    if(data[0].isEmpty){ return null; }
+
+    List<Channel> result = [];
+    final RegExp regex = RegExp("\[\s*(\w*)\s*\]");
+    for (String channelName in data[0]){
+      result.add(Channel(
+          channelName.split(' ')[0],
+          regex.firstMatch(channelName).toString(),
+          data[0].indexOf(channelName)
+        )
+      );
+    }
   }
 }
