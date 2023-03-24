@@ -3,9 +3,44 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mmr_telemetry/shared/drawer.dart';
 import 'dart:io';
-import '../telemetry/telemetry.dart';
+import '../telemetry/channel.dart';
+
+final Widget drawerHeader = SizedBox(
+    height: 64.0,
+    child: DrawerHeader(
+        decoration: const BoxDecoration(color: Colors.blueGrey),
+        child: Row(
+          children: <Widget>[
+            Container(
+                margin: const EdgeInsets.only(bottom: 10.0, left: 0.0),
+                child: const Icon(Icons.equalizer_sharp, color: Colors.white, size: 25,)
+            ),
+            Container(
+                margin: const EdgeInsets.only(left: 10.0, bottom: 5.0),
+                child: const Text('Plots',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w400 ,
+                    )
+                )
+            )
+          ] ,
+        )
+    )
+);
+
+final Widget emptyListDrawer = ListTile(
+  title: const Text("No channel to display", style: TextStyle(
+      fontSize: 18, color: Colors.white,
+      fontWeight: FontWeight.w300)),
+  onTap: (){},
+);
+
+List<List<dynamic>> data = [];
+List<Channel> channels = [];
+List<Widget> menuItems = [];
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key, required this.title} );
@@ -19,8 +54,6 @@ class IntroScreenState extends State<IntroScreen> {
   IntroScreenState(this.title);
   final String title;
   String? fileName;
-  Telemetry? telemetry;
-  List<List<dynamic>> data = [];
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +138,7 @@ class IntroScreenState extends State<IntroScreen> {
       endDrawer: Container(
         width: MediaQuery.of(context).size.width / 5,
         margin: const EdgeInsets.only(top: 57.0),
-        child:  MenuDrawer(data: data),
+        child:  MenuDrawer(),
       ),
     );
   }
@@ -160,12 +193,128 @@ class IntroScreenState extends State<IntroScreen> {
       final csvString = lines.join('\n');
 
       setState((){
-        var test = const CsvToListConverter(eol:'\n').convert(csvString);
-        if(test.isEmpty) { throw Exception("CSV file correctly opened, but failed to parse into list of values"); }
-        else { data = test; }
+        var parsedValues = const CsvToListConverter(eol:'\n').convert(csvString);
+        if(parsedValues.isEmpty) { throw Exception("CSV file correctly opened, but failed to parse into list of values"); }
+        else {
+          data = parsedValues;
+          if(data != null){
+            if(data.isNotEmpty){
+              channels.clear();
+            }
+          }
+
+          channels = buildChannels(data);
+          if(channels!=null){
+            if(channels.isNotEmpty){
+              data.clear();
+            }
+          }
+
+          menuItems = buildMenuItems(channels);
+        }
       });
     });
 
     return file.name;
+  }
+
+  List<Widget> buildMenuItems( List<Channel> channels){
+    menuItems.clear();
+    if(channels != null){
+      if(channels.isNotEmpty){
+        for (Channel channel in channels) {
+          menuItems.add(ListTile(
+            title: Row(
+              children: <Widget>[
+                Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
+                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)),
+                // const VerticalDivider(
+                //   width: 10,
+                //   thickness: 0.5,
+                //   indent: 2,
+                //   endIndent: 2,
+                //   color: Colors.white,
+                // ),
+                Container(
+                    margin: const EdgeInsets.only(right:5,left:5),
+                    height: 20,
+                    alignment: Alignment.centerRight,
+                    child: Text('[ ${channel.unit} ]', textAlign: TextAlign.end,
+                        style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )),
+                ),
+
+              ]
+            ),
+            onTap: (){},
+            )
+          );
+        }
+        return menuItems;
+      }
+    }
+
+    menuItems.add(ListTile(
+      title: const Text("No channel to display", style: TextStyle(
+          fontSize: 18, color: Colors.white,
+          fontWeight: FontWeight.w300)),
+      onTap: (){},)
+    );
+
+    return menuItems;
+  }
+
+  List<Channel> buildChannels(List<List<dynamic>> data) {
+    if(data == null){ return []; }
+    if(data.isEmpty){ return []; }
+    if(data[0].isEmpty){ return []; }
+
+    List<Channel> result = [];
+    final RegExp regex = RegExp(r'\[(.*?)\]'); // '\[\s*(\w*)\s*\]'
+    for (String channelName in data[0]){
+      result.add(Channel(
+          channelName.split('[')[0].replaceAll(' ', ''),
+          regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "",
+          data[0].indexOf(channelName))
+      );
+    }
+    return result;
+  }
+}
+
+class MenuDrawer extends StatefulWidget {
+  MenuDrawer({Key? key}) : super(key: key);
+
+  @override
+  State<MenuDrawer> createState() => MenuDrawerState();
+}
+
+class MenuDrawerState extends State<MenuDrawer> {
+
+  @override
+  Widget build(BuildContext context) {
+    if (menuItems == null){
+      menuItems.add(emptyListDrawer);
+    }
+    if (menuItems.isEmpty){
+      menuItems.add(emptyListDrawer);
+    }
+
+    return Drawer(
+      elevation: 0,
+      backgroundColor: Colors.blueGrey.shade900,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SizedBox(
+            height: 64,
+            child: drawerHeader,
+          ),
+          Expanded(
+            child: ListView(
+              children: menuItems,)
+          )
+        ]
+      ),
+    );
   }
 }
