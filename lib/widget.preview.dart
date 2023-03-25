@@ -1,7 +1,7 @@
-// Modified at: 2023-03-25 12:41:57.092
+// Modified at: 2023-03-25 14:54:56.733
 import 'package:flutter/material.dart';
 import 'package:idea_widget_preview/preview.dart';
-
+import '../main.dart';
 
 
 void main() {
@@ -15,9 +15,10 @@ class _PreviewApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PreviewApp.preview(
-      paramsJson: '''{"client_id":"<no id>","initial_view_state":{"zoom":1.0,"scroll_y":0.0},"preview_id":{"value":-1},"previewed_file_path":"unspecified","theme":{"background":"#262626","text":"#d0d0d0"}}''',
+      paramsJson: '''{"client_id":"mmr_telemetry___2540bd0a618f01acdf261a84f2ff3c1885a697fd2ab855fe8ee07af0b573840e","initial_view_state":{"zoom":1.0,"scroll_y":0.0},"preview_id":{"value":2},"previewed_file_path":"../main.dart","theme":{"background":"#262626","text":"#d0d0d0"},"kotlin_server_port":41521}''',
       providers: () => [
-        
+                AppPreview(),
+
       ],
     );
   }

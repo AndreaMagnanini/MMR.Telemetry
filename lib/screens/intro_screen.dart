@@ -9,6 +9,7 @@ import '../telemetry/channel.dart';
 List<List<dynamic>> data = [];
 List<Channel> channels = [];
 List<Widget> menuItems = [];
+List<String> units = [];
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key, required this.title} );
@@ -36,7 +37,7 @@ class IntroScreenState extends State<IntroScreen> {
                   width: 100,
                   height: 60,
                   margin: const EdgeInsets.only(left:20, right:10),
-                  child: SvgPicture.asset('assets/mmr.svg', color: Colors.white,)
+                  child: SvgPicture.asset('assets/mmr.svg',  color: Colors.white,)
               ),
               SizedBox(
                 width: 60,
@@ -179,6 +180,7 @@ class IntroScreenState extends State<IntroScreen> {
           }
 
           menuItems = buildMenuItems(channels);
+          units = buildUnitsFilter(channels);
         }
       });
     });
@@ -226,6 +228,17 @@ class IntroScreenState extends State<IntroScreen> {
     return menuItems;
   }
 
+  List<String> buildUnitsFilter(List<Channel> channels){
+    String value;
+    for (var channel in channels){
+      if(channel.unit == '') value = 'empty';
+      else value = channel.unit;
+
+      if(!units.contains(value)) units.add(value);
+    }
+    return units;
+  }
+
   List<Channel> buildChannels(List<List<dynamic>> data) {
     if(data == null){ return []; }
     if(data.isEmpty){ return []; }
@@ -266,12 +279,15 @@ class MenuDrawer extends StatefulWidget {
 
 class MenuDrawerState extends State<MenuDrawer> {
   List<Widget> displayedItems = [];
+  List<String> displayedUnits = [];
+  String? dropdownValue;
 
   @override
   void initState() {
+    displayedUnits.add('all');
     if(menuItems.isEmpty){ displayedItems.add(emptyListDrawer); }
-    else{ displayedItems = menuItems; }
-
+    else{ displayedItems = menuItems; displayedUnits.addAll(units);}
+    dropdownValue = displayedUnits.first;
     super.initState();
   }
 
@@ -308,11 +324,11 @@ class MenuDrawerState extends State<MenuDrawer> {
                     ),
                     Flexible(
                         child: Container(
-                          width: 170,
-                          margin: const EdgeInsets.only(left: 50, bottom: 8),
+                          width: 130,
+                          margin: const EdgeInsets.only(left: 30, bottom: 8),
                           child: TextField(
                               style: TextStyle(fontSize: 18, color: Colors.blueGrey.shade900),
-                              onChanged: (value) => runFilter(value),
+                              onChanged: (value) => runSearchFilter(value),
                               decoration: const InputDecoration(
                                 contentPadding: EdgeInsets.only(left: 5, right: 5, top:2),
                                 hintText: 'filter',
@@ -323,6 +339,36 @@ class MenuDrawerState extends State<MenuDrawer> {
                                 prefixIcon: Icon(Icons.search), )
                           ),
                         )
+                    ),
+                    Container(
+                      height:50,
+                      margin: const EdgeInsets.only(left: 15, bottom:9, top:1),
+                        decoration:  BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(color: Colors.blueGrey.shade600, spreadRadius: 1),
+                          ],
+                          borderRadius: BorderRadius.circular(2.0),
+                          color: Colors.white,
+                        ),
+                      child: DropdownButton<String>(
+                        focusColor: Colors.white,
+                        alignment: Alignment.centerLeft,
+                        value: dropdownValue,
+                        items: displayedUnits.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(value: value, child: Text(' ${value}', textAlign: TextAlign.center, ));
+                        }).toList(),
+                        icon:  Icon(Icons.arrow_drop_down_sharp, color: Colors.blueGrey.shade900, ),
+                        elevation: 0,
+                        style: TextStyle(color: Colors.blueGrey.shade900, fontSize: 16,),
+                        underline: Container(
+                          height: 2,
+                          color: Colors.white,
+                        ),
+                        iconSize: 25,
+                        borderRadius: BorderRadius.circular(5.0),
+                        itemHeight: 50,
+                        onChanged: (String? value) => runUnitFilter(value)
+                        ,)
                     )
                   ] ,
                 )
@@ -345,7 +391,7 @@ class MenuDrawerState extends State<MenuDrawer> {
     return displayedItems;
   }
 
-  void runFilter(String enteredKeyword) {
+  void runSearchFilter(String enteredKeyword) {
     List<Widget> results = [];
     if (enteredKeyword.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
@@ -360,6 +406,29 @@ class MenuDrawerState extends State<MenuDrawer> {
     setState(() {
       displayedItems = results;
     });
+  }
+
+  void runUnitFilter(String? enteredUnit) {
+    List<Widget> results = [];
+    if(enteredUnit == null){ return; }
+    else if (enteredUnit.isEmpty || enteredUnit == 'all') {
+      // if the search field is empty or only contains white-space, we'll display all users
+      results = resetDisplayedItems();
+    } else {
+      results = displayedItems.where((item) => checkUnits(item, enteredUnit)).toList();
+      // we use the toLowerCase() method to make it case-insensitive
+    }
+    // Refresh the UI
+    setState(() {
+      dropdownValue = enteredUnit;
+      displayedItems = results;
+    });
+  }
+
+  bool checkUnits(Widget item, String unit){
+    var name = item.key.toString().replaceAll("[<'", '').replaceAll("'>]", '');
+    var channel = channels.where((element) => element.name == name).toList();
+    return channel[0].unit == unit;
   }
 }
 
