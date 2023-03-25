@@ -6,38 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 import '../telemetry/channel.dart';
 
-final Widget drawerHeader = SizedBox(
-    height: 64.0,
-    child: DrawerHeader(
-        decoration: const BoxDecoration(color: Colors.blueGrey),
-        child: Row(
-          children: <Widget>[
-            Container(
-                margin: const EdgeInsets.only(bottom: 10.0, left: 0.0),
-                child: const Icon(Icons.equalizer_sharp, color: Colors.white, size: 25,)
-            ),
-            Container(
-                margin: const EdgeInsets.only(left: 10.0, bottom: 5.0),
-                child: const Text('Plots',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w400 ,
-                    )
-                )
-            )
-          ] ,
-        )
-    )
-);
-
-final Widget emptyListDrawer = ListTile(
-  title: const Text("No channel to display", style: TextStyle(
-      fontSize: 18, color: Colors.white,
-      fontWeight: FontWeight.w300)),
-  onTap: (){},
-);
-
 List<List<dynamic>> data = [];
 List<Channel> channels = [];
 List<Widget> menuItems = [];
@@ -224,6 +192,7 @@ class IntroScreenState extends State<IntroScreen> {
       if(channels.isNotEmpty){
         for (Channel channel in channels) {
           menuItems.add(ListTile(
+            key: Key(channel.name),
             title: Row(
               children: <Widget>[
                 Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
@@ -253,13 +222,7 @@ class IntroScreenState extends State<IntroScreen> {
       }
     }
 
-    menuItems.add(ListTile(
-      title: const Text("No channel to display", style: TextStyle(
-          fontSize: 18, color: Colors.white,
-          fontWeight: FontWeight.w300)),
-      onTap: (){},)
-    );
-
+    menuItems.add(emptyListDrawer);
     return menuItems;
   }
 
@@ -281,23 +244,39 @@ class IntroScreenState extends State<IntroScreen> {
   }
 }
 
+final Widget emptyListDrawer = ListTile(
+  title: const SizedBox(
+    width:300,
+    // padding: EdgeInsets.only(left:20),
+    child: Text("No channel to display",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 18, color: Colors.white,
+          fontWeight: FontWeight.w300,)),
+  ),
+  onTap: (){},
+);
+
 class MenuDrawer extends StatefulWidget {
-  MenuDrawer({Key? key}) : super(key: key);
+  const MenuDrawer({Key? key}) : super(key: key);
 
   @override
   State<MenuDrawer> createState() => MenuDrawerState();
 }
 
 class MenuDrawerState extends State<MenuDrawer> {
+  List<Widget> displayedItems = [];
+
+  @override
+  void initState() {
+    if(menuItems.isEmpty){ displayedItems.add(emptyListDrawer); }
+    else{ displayedItems = menuItems; }
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (menuItems == null){
-      menuItems.add(emptyListDrawer);
-    }
-    if (menuItems.isEmpty){
-      menuItems.add(emptyListDrawer);
-    }
 
     return Drawer(
       elevation: 0,
@@ -306,15 +285,82 @@ class MenuDrawerState extends State<MenuDrawer> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           SizedBox(
-            height: 64,
-            child: drawerHeader,
+            height: 80,
+            child: DrawerHeader(
+                decoration: const BoxDecoration(color: Colors.blueGrey),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Container(
+                        margin: const EdgeInsets.only(bottom: 10.0, left: 0.0),
+                        child: const Icon(Icons.equalizer_sharp, color: Colors.white, size: 25,)
+                    ),
+                    Container(
+                        margin: const EdgeInsets.only(left: 10.0, top: 8.0),
+                        child: const Text('Plots',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400 ,
+                            )
+                        )
+                    ),
+                    Flexible(
+                        child: Container(
+                          width: 170,
+                          margin: const EdgeInsets.only(left: 50, bottom: 8),
+                          child: TextField(
+                              style: TextStyle(fontSize: 18, color: Colors.blueGrey.shade900),
+                              onChanged: (value) => runFilter(value),
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.only(left: 5, right: 5, top:2),
+                                hintText: 'filter',
+                                filled: true,
+                                fillColor: Colors.white,
+                                hintStyle: TextStyle(fontSize: 18,),
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.search), )
+                          ),
+                        )
+                    )
+                  ] ,
+                )
+            ),
           ),
           Expanded(
             child: ListView(
-              children: menuItems,)
+                children: displayedItems
+            )
           )
         ]
       ),
     );
   }
+
+  List<Widget> resetDisplayedItems(){
+    setState(() {
+      displayedItems = menuItems;
+    });
+    return displayedItems;
+  }
+
+  void runFilter(String enteredKeyword) {
+    List<Widget> results = [];
+    if (enteredKeyword.isEmpty) {
+      // if the search field is empty or only contains white-space, we'll display all users
+      results = resetDisplayedItems();
+    } else {
+      results = displayedItems.where((item) =>
+          item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase()))
+          .toList();
+      // we use the toLowerCase() method to make it case-insensitive
+    }
+    // Refresh the UI
+    setState(() {
+      displayedItems = results;
+    });
+  }
 }
+
+
