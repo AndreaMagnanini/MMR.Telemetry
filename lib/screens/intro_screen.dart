@@ -9,6 +9,7 @@ import '../telemetry/channel.dart';
 List<List<dynamic>> data = [];
 List<Channel> channels = [];
 List<Widget> menuItems = [];
+List<Widget> filteredItems = [];
 List<String> units = [];
 
 class IntroScreen extends StatefulWidget {
@@ -32,30 +33,31 @@ class IntroScreenState extends State<IntroScreen> {
         automaticallyImplyLeading: false,
         elevation: 2,
         title: Row(
-            children: <Widget>[
-              Container(
-                  width: 100,
-                  height: 60,
-                  margin: const EdgeInsets.only(left:20, right:10),
-                  child: SvgPicture.asset('assets/mmr.svg',  color: Colors.white,)
-              ),
-              SizedBox(
-                width: 60,
+          children: <Widget>[
+            Container(
+                width: 100,
                 height: 60,
-                child: Image.asset('assets/coloredLogoBands.png', scale: 20,)
+                margin: const EdgeInsets.only(left:20, right:10),
+                child: SvgPicture.asset('assets/mmr.svg',  color: Colors.white,)
+            ),
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: Image.asset('assets/coloredLogoBands.png', scale: 20,)
+            ),
+            Container(
+              margin: const EdgeInsets.all(10),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontFamily: 'Ubuntu',
+                  color: Colors.white,
+                )
               ),
-              Container(
-                margin: const EdgeInsets.all(10),
-                child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontFamily: 'Ubuntu',
-                      color: Colors.white,
-                    )
-                ),
-              )
-            ]),
+            )
+          ]
+        ),
         actions:
         <Widget>[
           Container(
@@ -71,16 +73,16 @@ class IntroScreenState extends State<IntroScreen> {
             color: Colors.white,
           ),
           IconButton(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              style: ElevatedButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              icon: const Icon(Icons.add_sharp, color: Colors.white, size: 30, ),
-              padding: const EdgeInsets.only(right: 20.0, left: 20.0),
-              tooltip: 'Open new csv file',
-              onPressed: () => openFile()
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            style: ElevatedButton.styleFrom(
+              splashFactory: NoSplash.splashFactory,
+            ),
+            icon: const Icon(Icons.add_sharp, color: Colors.white, size: 30, ),
+            padding: const EdgeInsets.only(right: 20.0, left: 20.0),
+            tooltip: 'Open new csv file',
+            onPressed: () => openFile()
           ),
           const VerticalDivider(
             width: 5,
@@ -102,7 +104,8 @@ class IntroScreenState extends State<IntroScreen> {
               onPressed: () => Scaffold.of(context).openEndDrawer(),
               tooltip: "Expand Channels selector",
             ),
-          ),],
+          ),
+        ],
       ),
       endDrawer: Container(
         width: MediaQuery.of(context).size.width / 5,
@@ -179,7 +182,7 @@ class IntroScreenState extends State<IntroScreen> {
             }
           }
 
-          menuItems = buildMenuItems(channels);
+          buildMenuItems(channels);
           units = buildUnitsFilter(channels);
         }
       });
@@ -188,7 +191,7 @@ class IntroScreenState extends State<IntroScreen> {
     return file.name;
   }
 
-  List<Widget> buildMenuItems( List<Channel> channels){
+  void buildMenuItems( List<Channel> channels ){
     menuItems.clear();
     if(channels != null){
       if(channels.isNotEmpty){
@@ -207,11 +210,14 @@ class IntroScreenState extends State<IntroScreen> {
                 //   color: Colors.white,
                 // ),
                 Container(
-                    margin: const EdgeInsets.only(right:5,left:5),
-                    height: 20,
-                    alignment: Alignment.centerRight,
-                    child: Text('[ ${channel.unit} ]', textAlign: TextAlign.end,
-                        style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )),
+                  margin: const EdgeInsets.only(right:5,left:5),
+                  height: 20,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '[ ${channel.unit} ]',
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
+                  ),
                 ),
 
               ]
@@ -220,12 +226,10 @@ class IntroScreenState extends State<IntroScreen> {
             )
           );
         }
-        return menuItems;
       }
     }
 
     menuItems.add(emptyListDrawer);
-    return menuItems;
   }
 
   List<String> buildUnitsFilter(List<Channel> channels){
@@ -248,24 +252,48 @@ class IntroScreenState extends State<IntroScreen> {
     final RegExp regex = RegExp(r'\[(.*?)\]'); // '\[\s*(\w*)\s*\]'
     for (String channelName in data[0]){
       result.add(Channel(
-          channelName.split('[')[0].replaceAll(' ', ''),
-          regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "",
-          data[0].indexOf(channelName))
+        channelName.split('[')[0].replaceAll(' ', ''),
+        regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "",
+        data[0].indexOf(channelName))
       );
+    }
+
+    data.remove(data[0]);
+    if(data[1][0] == 0.001) reduceData();
+    for (List<dynamic> row in data){
+      for (Channel channel in result){
+        channel.values.add(row[channel.index] is int? row[channel.index].toDouble() : row[channel.index]);
+      }
     }
     return result;
   }
+
+  void reduceData(){
+    List<int> indexes = [];
+    for(int i = 1; i<data.length; i++){
+      double value = (data[i][0]*100).toDouble();
+      if(value.roundToDouble() != value) indexes.add(i);
+    }
+    if (indexes.isNotEmpty) {
+      for (var index in indexes.reversed)
+        data.removeAt(index);
+    }
+  }
 }
+
+
 
 final Widget emptyListDrawer = ListTile(
   title: const SizedBox(
     width:300,
     // padding: EdgeInsets.only(left:20),
     child: Text("No channel to display",
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18, color: Colors.white,
-          fontWeight: FontWeight.w300,)),
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 18, color: Colors.white,
+        fontWeight: FontWeight.w300,
+      )
+    ),
   ),
   onTap: (){},
 );
@@ -281,6 +309,8 @@ class MenuDrawerState extends State<MenuDrawer> {
   List<Widget> displayedItems = [];
   List<String> displayedUnits = [];
   String? dropdownValue;
+  bool searchFilter = false;
+  bool unitFilter = false;
 
   @override
   void initState() {
@@ -303,75 +333,74 @@ class MenuDrawerState extends State<MenuDrawer> {
           SizedBox(
             height: 80,
             child: DrawerHeader(
-                decoration: const BoxDecoration(color: Colors.blueGrey),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Container(
-                        margin: const EdgeInsets.only(bottom: 10.0, left: 0.0),
-                        child: const Icon(Icons.equalizer_sharp, color: Colors.white, size: 25,)
-                    ),
-                    Container(
-                        margin: const EdgeInsets.only(left: 10.0, top: 8.0),
-                        child: const Text('Plots',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w400 ,
-                            )
-                        )
-                    ),
-                    Flexible(
-                        child: Container(
-                          width: 130,
-                          margin: const EdgeInsets.only(left: 30, bottom: 8),
-                          child: TextField(
-                              style: TextStyle(fontSize: 18, color: Colors.blueGrey.shade900),
-                              onChanged: (value) => runSearchFilter(value),
-                              decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.only(left: 5, right: 5, top:2),
-                                hintText: 'filter',
-                                filled: true,
-                                fillColor: Colors.white,
-                                hintStyle: TextStyle(fontSize: 18,),
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.search), )
-                          ),
-                        )
-                    ),
-                    Container(
-                      height:50,
-                      margin: const EdgeInsets.only(left: 15, bottom:9, top:1),
-                        decoration:  BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.blueGrey.shade600, spreadRadius: 1),
-                          ],
-                          borderRadius: BorderRadius.circular(2.0),
-                          color: Colors.white,
-                        ),
-                      child: DropdownButton<String>(
-                        focusColor: Colors.white,
-                        alignment: Alignment.centerLeft,
-                        value: dropdownValue,
-                        items: displayedUnits.map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(value: value, child: Text(' ${value}', textAlign: TextAlign.center, ));
-                        }).toList(),
-                        icon:  Icon(Icons.arrow_drop_down_sharp, color: Colors.blueGrey.shade900, ),
-                        elevation: 0,
-                        style: TextStyle(color: Colors.blueGrey.shade900, fontSize: 16,),
-                        underline: Container(
-                          height: 2,
-                          color: Colors.white,
-                        ),
-                        iconSize: 25,
-                        borderRadius: BorderRadius.circular(5.0),
-                        itemHeight: 50,
-                        onChanged: (String? value) => runUnitFilter(value)
-                        ,)
+              decoration: const BoxDecoration(color: Colors.blueGrey),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10.0, left: 0.0),
+                    child: const Icon(Icons.equalizer_sharp, color: Colors.white, size: 25,)
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 10.0, top: 8.0),
+                    child: const Text('Plots',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w400 ,
+                      )
                     )
-                  ] ,
-                )
+                  ),
+                  Flexible(
+                    child: Container(
+                      width: 130,
+                      margin: const EdgeInsets.only(left: 30, bottom: 8),
+                      child: TextField(
+                        style: TextStyle(fontSize: 18, color: Colors.blueGrey.shade900),
+                        onChanged: (value) => runSearchFilter(value),
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.only(left: 5, right: 5, top:2),
+                          hintText: 'filter',
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintStyle: TextStyle(fontSize: 18,),
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.search),
+                        )
+                      ),
+                    )
+                  ),
+                  Container(
+                    height:50,
+                    margin: const EdgeInsets.only(left: 15, bottom:9, top:1),
+                    decoration:  BoxDecoration(
+                      boxShadow: [BoxShadow(color: Colors.blueGrey.shade600, spreadRadius: 1),],
+                      borderRadius: BorderRadius.circular(2.0),
+                      color: Colors.white,
+                    ),
+                    child: DropdownButton<String>(
+                      focusColor: Colors.white,
+                      alignment: Alignment.centerLeft,
+                      value: dropdownValue,
+                      items: displayedUnits.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(value: value, child: Text(' ${value}', textAlign: TextAlign.center, ));
+                      }).toList(),
+                      icon:  Icon(Icons.arrow_drop_down_sharp, color: Colors.blueGrey.shade900, ),
+                      elevation: 0,
+                      style: TextStyle(color: Colors.blueGrey.shade900, fontSize: 16,),
+                      underline: Container(
+                        height: 2,
+                        color: Colors.white,
+                      ),
+                      iconSize: 25,
+                      borderRadius: BorderRadius.circular(5.0),
+                      itemHeight: 50,
+                      onChanged: (String? value) => runUnitFilter(value)
+                    )
+                  )
+                ] ,
+              )
             ),
           ),
           Expanded(
@@ -384,51 +413,84 @@ class MenuDrawerState extends State<MenuDrawer> {
     );
   }
 
-  List<Widget> resetDisplayedItems(){
+  void resetDisplayedItems(){
     setState(() {
-      displayedItems = menuItems;
+      if(unitFilter == false && searchFilter == false) displayedItems = menuItems;
+      else {
+        if(filteredItems.isNotEmpty) displayedItems = filteredItems;
+      }
     });
-    return displayedItems;
   }
 
   void runSearchFilter(String enteredKeyword) {
     List<Widget> results = [];
     if (enteredKeyword.isEmpty) {
+      setState(() {
+        searchFilter = false;
+      });
       // if the search field is empty or only contains white-space, we'll display all users
-      results = resetDisplayedItems();
+      resetDisplayedItems();
     } else {
-      results = displayedItems.where((item) =>
-          item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase()))
-          .toList();
+      setState(() {
+        searchFilter = true;
+      });
+      if(displayedItems.isNotEmpty)
+        results = displayedItems.where((item) =>
+          item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
+      else
+        results = filteredItems.where((item) =>
+            item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
       // we use the toLowerCase() method to make it case-insensitive
+      // Refresh the UI
+      setState(() {
+        if(displayedItems.isNotEmpty)
+          filteredItems = displayedItems;
+        displayedItems = results;
+      });
     }
-    // Refresh the UI
-    setState(() {
-      displayedItems = results;
-    });
   }
 
   void runUnitFilter(String? enteredUnit) {
     List<Widget> results = [];
     if(enteredUnit == null){ return; }
     else if (enteredUnit.isEmpty || enteredUnit == 'all') {
+      setState(() {
+        dropdownValue = enteredUnit;
+        unitFilter = false;
+      });
       // if the search field is empty or only contains white-space, we'll display all users
-      results = resetDisplayedItems();
+      resetDisplayedItems();
     } else {
-      results = displayedItems.where((item) => checkUnits(item, enteredUnit)).toList();
+      setState(() {
+        unitFilter = true;
+      });
+      if(displayedItems.isNotEmpty)
+        results = displayedItems.where((item) => checkUnits(item, enteredUnit)).toList();
+      else
+        results = filteredItems.where((item) => checkUnits(item, enteredUnit)).toList();
       // we use the toLowerCase() method to make it case-insensitive
+      // Refresh the UI
+      setState(() {
+        dropdownValue = enteredUnit;
+        if(displayedItems.isNotEmpty)
+          filteredItems = displayedItems;
+        displayedItems = results;
+      });
     }
-    // Refresh the UI
-    setState(() {
-      dropdownValue = enteredUnit;
-      displayedItems = results;
-    });
   }
 
   bool checkUnits(Widget item, String unit){
     var name = item.key.toString().replaceAll("[<'", '').replaceAll("'>]", '');
     var channel = channels.where((element) => element.name == name).toList();
-    return channel[0].unit == unit;
+    String value = '';
+    if(channel.isEmpty){
+      print('name ${name} from widget ${item.toString()} didn\'t have a corresponding channel');
+      return false;
+    }
+    else{
+      if(unit != 'empty') value = unit;
+      return channel[0].unit == value;
+    }
   }
 }
 

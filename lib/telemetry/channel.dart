@@ -8,5 +8,5 @@ class Channel{
   late final String name;
   late final String unit;
   late final int index;
-  late final List<double> values;
+  List<double> values = [];
 }
