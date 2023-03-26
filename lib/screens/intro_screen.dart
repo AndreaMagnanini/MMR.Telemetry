@@ -175,15 +175,15 @@ class IntroScreenState extends State<IntroScreen> {
             }
           }
 
-          channels = buildChannels(data);
+          buildChannels();
           if(channels!=null){
             if(channels.isNotEmpty){
               data.clear();
             }
           }
 
-          buildMenuItems(channels);
-          units = buildUnitsFilter(channels);
+          buildMenuItems();
+          units = buildUnitsFilter();
         }
       });
     });
@@ -191,7 +191,7 @@ class IntroScreenState extends State<IntroScreen> {
     return file.name;
   }
 
-  void buildMenuItems( List<Channel> channels ){
+  void buildMenuItems(){
     menuItems.clear();
     if(channels != null){
       if(channels.isNotEmpty){
@@ -228,11 +228,10 @@ class IntroScreenState extends State<IntroScreen> {
         }
       }
     }
-
-    menuItems.add(emptyListDrawer);
+    else menuItems.add(emptyListDrawer);
   }
 
-  List<String> buildUnitsFilter(List<Channel> channels){
+  List<String> buildUnitsFilter(){
     String value;
     for (var channel in channels){
       if(channel.unit == '') value = 'empty';
@@ -243,10 +242,10 @@ class IntroScreenState extends State<IntroScreen> {
     return units;
   }
 
-  List<Channel> buildChannels(List<List<dynamic>> data) {
-    if(data == null){ return []; }
-    if(data.isEmpty){ return []; }
-    if(data[0].isEmpty){ return []; }
+  void buildChannels() {
+    if(data == null){ return;  }
+    if(data.isEmpty){ return; }
+    if(data[0].isEmpty){ return; }
 
     List<Channel> result = [];
     final RegExp regex = RegExp(r'\[(.*?)\]'); // '\[\s*(\w*)\s*\]'
@@ -265,7 +264,9 @@ class IntroScreenState extends State<IntroScreen> {
         channel.values.add(row[channel.index] is int? row[channel.index].toDouble() : row[channel.index]);
       }
     }
-    return result;
+    setState(() {
+      channels = result;
+    });
   }
 
   void reduceData(){
@@ -280,8 +281,6 @@ class IntroScreenState extends State<IntroScreen> {
     }
   }
 }
-
-
 
 final Widget emptyListDrawer = ListTile(
   title: const SizedBox(
