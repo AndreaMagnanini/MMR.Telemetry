@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
+import '../telemetry/TelemetryPlot.dart';
 import '../telemetry/channel.dart';
 
 List<List<dynamic>> data = [];
@@ -12,59 +13,6 @@ List<Widget> menuItems = [];
 List<String> units = [];
 List<Widget> plots = [];
 
-class EmptyPlot extends StatelessWidget {
-  const EmptyPlot({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      width: 270,
-      height:MediaQuery.of(context).size.height / 4,
-      decoration:  BoxDecoration(
-        boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2),],
-        borderRadius: BorderRadius.circular(5.0),
-        color: const Color.fromRGBO(18, 18, 18, 1),),
-      child: Row(
-        children: [
-          Container(
-            height: 300,
-            width:270,
-            decoration:  BoxDecoration(
-              boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2),],
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0), bottomLeft: Radius.circular(5.0)),
-              color: Colors.blueGrey.shade900,),
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0))),
-                  alignment: Alignment.center,
-                  height:30,
-                  width:270,
-                  child: Text("Empty plot", style: TextStyle(fontSize: 15, color: Colors.white, backgroundColor: Colors.blueGrey.shade700, ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      ListTile(
-                        visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-                        title: Container(
-                          alignment: Alignment.center,
-                          child: const Text('no channel for this plot', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200, fontSize: 14),),
-                        )
-                      )
-                    ]
-                  )
-                )
-              ]
-            )
-          )
-        ]
-      )
-    );
-  }
-}
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key, required this.title} );
@@ -84,27 +32,28 @@ class IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       primary: true,
       appBar: AppBar(
+        toolbarHeight: MediaQuery.of(context).size.height / 20,
         automaticallyImplyLeading: false,
-        elevation: 2,
+        elevation: 0,
         title: Row(
           children: <Widget>[
             Container(
-                width: 100,
-                height: 60,
-                margin: const EdgeInsets.only(left:20, right:10),
-                child: SvgPicture.asset('assets/mmr.svg',  color: Colors.white,)
+                width: MediaQuery.of(context).size.width / 25,
+                height: MediaQuery.of(context).size.height / 20,
+                margin: const EdgeInsets.only(left:10, right:10),
+                child: SvgPicture.asset('assets/mmr.svg', colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn))
             ),
             SizedBox(
-              width: 60,
-              height: 60,
+              width: MediaQuery.of(context).size.width / 30,
+              height: MediaQuery.of(context).size.height / 20,
               child: Image.asset('assets/coloredLogoBands.png', scale: 20,)
             ),
             Container(
               margin: const EdgeInsets.all(10),
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 24,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height / 40,
                   fontFamily: 'Ubuntu',
                   color: Colors.white,
                 )
@@ -115,46 +64,49 @@ class IntroScreenState extends State<IntroScreen> {
         actions:
         <Widget>[
           Container(
-            margin: const EdgeInsets.only(right:15, top:20),
-            height: 60,
-            child: Text(fileName?? "")
+            padding: EdgeInsets.only(right: MediaQuery.of(context).size.width/ 100, top: MediaQuery.of(context).size.width/ 120),
+            height: MediaQuery.of(context).size.height / 20,
+            child: Text(fileName?? "", style: TextStyle(fontSize: MediaQuery.of(context).size.height / 60),)
           ),
-          const VerticalDivider(
+          VerticalDivider(
+              width: 1,
+              thickness: 0.5,
+              indent: MediaQuery.of(context).size.height / 150,
+              endIndent: MediaQuery.of(context).size.height / 150,
+              color: Colors.white,
+          ),
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width/ 100, right: MediaQuery.of(context).size.width/ 100),
+            child: IconButton(
+              alignment: Alignment.center,
+              // splashColor: Colors.transparent,
+              // highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              icon: Icon(Icons.add_sharp, color: Colors.white, size: MediaQuery.of(context).size.height / 25,),
+              padding: const EdgeInsets.all(0),
+              tooltip: 'Open new csv file',
+              onPressed: () => openFile()
+            ),
+          ),
+          VerticalDivider(
             width: 1,
             thickness: 0.5,
-            indent: 10,
-            endIndent: 10,
-            color: Colors.white,
-          ),
-          IconButton(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            style: ElevatedButton.styleFrom(
-              splashFactory: NoSplash.splashFactory,
-            ),
-            icon: const Icon(Icons.add_sharp, color: Colors.white, size: 30, ),
-            padding: const EdgeInsets.only(right: 20.0, left: 20.0),
-            tooltip: 'Open new csv file',
-            onPressed: () => openFile()
-          ),
-          const VerticalDivider(
-            width: 5,
-            thickness: 0.5,
-            indent: 10,
-            endIndent: 10,
+            indent: MediaQuery.of(context).size.height / 150,
+            endIndent: MediaQuery.of(context).size.height / 150,
             color: Colors.white,
           ),
           Builder(
             builder: (context) => IconButton(
+              padding: EdgeInsets.only(right: MediaQuery.of(context).size.width / 50, left: MediaQuery.of(context).size.width / 70,),
+              alignment: Alignment.center,
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
               hoverColor: Colors.transparent,
               style: ElevatedButton.styleFrom(
                 splashFactory: NoSplash.splashFactory,
               ),
-              icon: const Icon(Icons.chrome_reader_mode_sharp, color: Colors.white, size: 25,),
-              padding: const EdgeInsets.only(right: 20.0, left: 20.0),
+              icon: Icon(Icons.chrome_reader_mode_sharp, color: Colors.white, size: MediaQuery.of(context).size.height / 30,),
               onPressed: () => Scaffold.of(context).openEndDrawer(),
               tooltip: "Expand Channels selector",
             ),
@@ -163,15 +115,22 @@ class IntroScreenState extends State<IntroScreen> {
       ),
       endDrawer: Container(
         width: MediaQuery.of(context).size.width / 5,
-        margin: const EdgeInsets.only(top: 57.0),
+        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height / 20),
         child:  const MenuDrawer(),
       ),
       body: Container(
         color: const Color.fromRGBO(18, 18, 18, 1),
-        child: ListView(
-          children: const [
-            EmptyPlot()
-          ]
+        child: Container(
+          color: const Color.fromRGBO(18, 18, 18, 1),
+          margin:  EdgeInsets.only(top:10 , bottom: 10),
+          child:  ListView(
+            children: const [
+              Plot(),
+              Plot(),
+              Plot(),
+              Plot()
+            ]
+          )
         )
       )
     );
@@ -366,6 +325,7 @@ final Widget emptyListDrawer = ListTile(
   onTap: (){},
 );
 
+
 class MenuDrawer extends StatefulWidget {
   const MenuDrawer({Key? key}) : super(key: key);
 
@@ -455,7 +415,7 @@ class MenuDrawerState extends State<MenuDrawer> {
                       alignment: Alignment.centerLeft,
                       value: dropdownValue,
                       items: displayedUnits.map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(value: value, child: Text(' ${value}', textAlign: TextAlign.center, ));
+                        return DropdownMenuItem<String>(value: value, child: Text(' $value', textAlign: TextAlign.center, ));
                       }).toList(),
                       icon:  Icon(Icons.arrow_drop_down_sharp, color: Colors.blueGrey.shade900, ),
                       elevation: 0,
@@ -571,7 +531,7 @@ class MenuDrawerState extends State<MenuDrawer> {
     var channel = channels.where((element) => element.name == name).toList();
     String value = '';
     if(channel.isEmpty){
-      print('name ${name} from widget ${item.toString()} didn\'t have a corresponding channel');
+      print('name $name from widget ${item.toString()} did not have a corresponding channel');
       return false;
     }
     else{
