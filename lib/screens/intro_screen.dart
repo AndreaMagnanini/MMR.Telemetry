@@ -11,6 +11,62 @@ List<Channel> channels = [];
 List<Widget> menuItems = [];
 List<Widget> filteredItems = [];
 List<String> units = [];
+List<Widget> plots = [];
+
+class EmptyPlot extends StatelessWidget {
+  const EmptyPlot({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      width: 270,
+      height:300,
+      decoration:  BoxDecoration(
+        boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2),],
+        borderRadius: BorderRadius.circular(5.0),
+        color: const Color.fromRGBO(18, 18, 18, 1),),
+      child: Row(
+        children: [
+          Container(
+            height: 300,
+            width:270,
+            decoration:  BoxDecoration(
+              boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2),],
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0), bottomLeft: Radius.circular(5.0)),
+              color: Colors.blueGrey.shade900,),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0))),
+                  alignment: Alignment.center,
+                  height:30,
+                  width:270,
+                  child: Text("Empty plot", style: TextStyle(fontSize: 15, color: Colors.white, backgroundColor: Colors.blueGrey.shade700, ),
+
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ListTile(
+                        visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+                        title: Container(
+                          alignment: Alignment.center,
+                          child: const Text('no channel for this plot', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200, fontSize: 14),),
+                        )
+                      )
+                    ]
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    );
+  }
+}
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key, required this.title} );
@@ -110,8 +166,16 @@ class IntroScreenState extends State<IntroScreen> {
       endDrawer: Container(
         width: MediaQuery.of(context).size.width / 5,
         margin: const EdgeInsets.only(top: 57.0),
-        child:  MenuDrawer(),
+        child:  const MenuDrawer(),
       ),
+      body: Container(
+        color: const Color.fromRGBO(18, 18, 18, 1),
+        child: ListView(
+          children: [
+            EmptyPlot()
+          ]
+        )
+      )
     );
   }
 
@@ -192,6 +256,7 @@ class IntroScreenState extends State<IntroScreen> {
   }
 
   void buildMenuItems(){
+    // TODO: implement draggable ListTile
     menuItems.clear();
     if(channels != null){
       if(channels.isNotEmpty){
@@ -311,6 +376,7 @@ class MenuDrawerState extends State<MenuDrawer> {
   bool searchFilter = false;
   bool unitFilter = false;
 
+  // TODO: fix list updating on filter value changes
   @override
   void initState() {
     displayedUnits.add('all');
@@ -356,6 +422,7 @@ class MenuDrawerState extends State<MenuDrawer> {
                       width: 130,
                       margin: const EdgeInsets.only(left: 30, bottom: 8),
                       child: TextField(
+                        enabled: channels.isNotEmpty,
                         style: TextStyle(fontSize: 18, color: Colors.blueGrey.shade900),
                         onChanged: (value) => runSearchFilter(value),
                         decoration: const InputDecoration(
@@ -395,7 +462,7 @@ class MenuDrawerState extends State<MenuDrawer> {
                       iconSize: 25,
                       borderRadius: BorderRadius.circular(5.0),
                       itemHeight: 50,
-                      onChanged: (String? value) => runUnitFilter(value)
+                      onChanged: channels.isNotEmpty? (String? value) => runUnitFilter(value) : null
                     )
                   )
                 ] ,

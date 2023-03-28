@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:idea_widget_preview/preview.dart';
 import 'package:mmr_telemetry/screens/intro_screen.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
