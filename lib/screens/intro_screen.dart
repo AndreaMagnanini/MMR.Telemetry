@@ -9,7 +9,6 @@ import '../telemetry/channel.dart';
 List<List<dynamic>> data = [];
 List<Channel> channels = [];
 List<Widget> menuItems = [];
-List<Widget> filteredItems = [];
 List<String> units = [];
 List<Widget> plots = [];
 
@@ -21,7 +20,7 @@ class EmptyPlot extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(20),
       width: 270,
-      height:300,
+      height:MediaQuery.of(context).size.height / 4,
       decoration:  BoxDecoration(
         boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2),],
         borderRadius: BorderRadius.circular(5.0),
@@ -43,7 +42,6 @@ class EmptyPlot extends StatelessWidget {
                   height:30,
                   width:270,
                   child: Text("Empty plot", style: TextStyle(fontSize: 15, color: Colors.white, backgroundColor: Colors.blueGrey.shade700, ),
-
                   ),
                 ),
                 Expanded(
@@ -171,7 +169,7 @@ class IntroScreenState extends State<IntroScreen> {
       body: Container(
         color: const Color.fromRGBO(18, 18, 18, 1),
         child: ListView(
-          children: [
+          children: const [
             EmptyPlot()
           ]
         )
@@ -293,14 +291,19 @@ class IntroScreenState extends State<IntroScreen> {
         }
       }
     }
-    else menuItems.add(emptyListDrawer);
+    else {
+      menuItems.add(emptyListDrawer);
+    }
   }
 
   List<String> buildUnitsFilter(){
     String value;
     for (var channel in channels){
-      if(channel.unit == '') value = 'empty';
-      else value = channel.unit;
+      if(channel.unit == '') {
+        value = 'empty';
+      } else {
+        value = channel.unit;
+      }
 
       if(!units.contains(value)) units.add(value);
     }
@@ -341,8 +344,9 @@ class IntroScreenState extends State<IntroScreen> {
       if(value.roundToDouble() != value) indexes.add(i);
     }
     if (indexes.isNotEmpty) {
-      for (var index in indexes.reversed)
+      for (var index in indexes.reversed) {
         data.removeAt(index);
+      }
     }
   }
 }
@@ -373,6 +377,7 @@ class MenuDrawerState extends State<MenuDrawer> {
   List<Widget> displayedItems = [];
   List<String> displayedUnits = [];
   String? dropdownValue;
+  String? filterValue;
   bool searchFilter = false;
   bool unitFilter = false;
 
@@ -481,11 +486,9 @@ class MenuDrawerState extends State<MenuDrawer> {
 
   void resetDisplayedItems(){
     setState(() {
-      if(unitFilter == false && searchFilter == false) displayedItems = menuItems;
-      else {
-        if(filteredItems.isNotEmpty) displayedItems = filteredItems;
-      }
-    });
+      if(unitFilter == false && searchFilter == false) {
+        displayedItems = menuItems;
+    }});
   }
 
   void runSearchFilter(String enteredKeyword) {
@@ -494,23 +497,29 @@ class MenuDrawerState extends State<MenuDrawer> {
       setState(() {
         searchFilter = false;
       });
-      // if the search field is empty or only contains white-space, we'll display all users
-      resetDisplayedItems();
+      if(unitFilter){
+        // we use the toLowerCase() method to make it case-insensitive
+        results = menuItems.where((item) => checkUnits(item, dropdownValue)).toList();
+        setState(() {
+          displayedItems = results;
+        });
+      } else {
+        resetDisplayedItems();
+      }
     } else {
       setState(() {
         searchFilter = true;
+        filterValue = enteredKeyword;
       });
-      if(displayedItems.isNotEmpty)
-        results = displayedItems.where((item) =>
-          item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
-      else
-        results = filteredItems.where((item) =>
-            item.key.toString().toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
+      results = menuItems.where((item) =>
+          item.key.toString().toLowerCase().contains(
+              enteredKeyword.toLowerCase())).toList();
+      if(unitFilter) {
+        results = results.where((item) => checkUnits(item, dropdownValue)).toList();
+      }
       // we use the toLowerCase() method to make it case-insensitive
       // Refresh the UI
       setState(() {
-        if(displayedItems.isNotEmpty)
-          filteredItems = displayedItems;
         displayedItems = results;
       });
     }
@@ -524,28 +533,40 @@ class MenuDrawerState extends State<MenuDrawer> {
         dropdownValue = enteredUnit;
         unitFilter = false;
       });
-      // if the search field is empty or only contains white-space, we'll display all users
-      resetDisplayedItems();
+      if(searchFilter){
+        // we use the toLowerCase() method to make it case-insensitive
+        results = menuItems.where((item) =>
+            item.key.toString().toLowerCase().contains(
+                filterValue!.toLowerCase())).toList();
+        setState(() {
+          displayedItems = results;
+        });
+      } else {
+        resetDisplayedItems();
+      }
     } else {
       setState(() {
         unitFilter = true;
       });
-      if(displayedItems.isNotEmpty)
-        results = displayedItems.where((item) => checkUnits(item, enteredUnit)).toList();
-      else
-        results = filteredItems.where((item) => checkUnits(item, enteredUnit)).toList();
-      // we use the toLowerCase() method to make it case-insensitive
+      if(searchFilter){
+        // we use the toLowerCase() method to make it case-insensitive
+          results = menuItems.where((item) =>
+              item.key.toString().toLowerCase().contains(
+                  filterValue!.toLowerCase())).toList();
+          results = results.where((item) => checkUnits(item, enteredUnit)).toList();
+      }else{
+        results = menuItems.where((item) => checkUnits(item, enteredUnit)).toList();
+      }
+
       // Refresh the UI
       setState(() {
         dropdownValue = enteredUnit;
-        if(displayedItems.isNotEmpty)
-          filteredItems = displayedItems;
         displayedItems = results;
       });
     }
   }
 
-  bool checkUnits(Widget item, String unit){
+  bool checkUnits(Widget item, String? unit){
     var name = item.key.toString().replaceAll("[<'", '').replaceAll("'>]", '');
     var channel = channels.where((element) => element.name == name).toList();
     String value = '';
@@ -554,7 +575,7 @@ class MenuDrawerState extends State<MenuDrawer> {
       return false;
     }
     else{
-      if(unit != 'empty') value = unit;
+      if(unit != 'empty') value = unit!;
       return channel[0].unit == value;
     }
   }
