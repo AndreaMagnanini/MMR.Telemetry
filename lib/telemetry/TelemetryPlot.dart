@@ -76,8 +76,7 @@ List<ChartSampleData> chartData = <ChartSampleData>[
   ChartSampleData(6.5, 1.12),
   ChartSampleData(6.6, 1.1),
   ChartSampleData(6.7, 1.12),
-  ChartSampleData(6.8, 1.16),
-
+  ChartSampleData(6.8, 1.16)
 ];
 
 class EmptyPlot extends StatefulWidget {
@@ -96,14 +95,14 @@ class EmptyPlotState extends State<EmptyPlot> {
           height: MediaQuery.of(context).size.height / 4,
           width: MediaQuery.of(context).size.width / 8,
           decoration:  BoxDecoration(
-            boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 1),],
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0), bottomLeft: Radius.circular(5.0)),
+            boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 2)],
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(7.0), bottomLeft: Radius.circular(7.0)),
             color: Colors.blueGrey.shade900,
           ),
           child: Column(
             children: [
               Container(
-                decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: const BorderRadius.only(topLeft: Radius.circular(5.0))),
+                decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: const BorderRadius.only(topLeft: Radius.circular(7.0))),
                 alignment: Alignment.center,
                 height:30,
                 width: MediaQuery.of(context).size.width / 8,
@@ -152,9 +151,9 @@ class EmptyPlotState extends State<EmptyPlot> {
             crosshairBehavior: CrosshairBehavior(enable:true, shouldAlwaysShow: true, activationMode: ActivationMode.singleTap ),
             series: <ChartSeries<ChartSampleData, double>>[
               LineSeries<ChartSampleData, double>(
-                  dataSource: chartData,
-                  xValueMapper: (ChartSampleData sales, _) => sales.seconds,
-                  yValueMapper: (ChartSampleData sales, _) => sales.yValue
+                dataSource: chartData,
+                xValueMapper: (ChartSampleData sales, _) => sales.seconds,
+                yValueMapper: (ChartSampleData sales, _) => sales.yValue
               )
             ]
           )
@@ -172,13 +171,14 @@ class Plot extends StatefulWidget {
   State<Plot> createState() => PlotState();
 }
 
+// TODO: implement drag and drop (accepts channel to display)
 class PlotState extends State<Plot> {
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top:1, right: 20, left:20 ),
       width: MediaQuery.of(context).size.width / 6,
-      height:MediaQuery.of(context).size.height / 4.35,
+      height:MediaQuery.of(context).size.height / 4.4,
       decoration:  BoxDecoration(
         boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 1),],
         borderRadius: BorderRadius.circular(6.0),

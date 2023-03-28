@@ -13,7 +13,6 @@ List<Widget> menuItems = [];
 List<String> units = [];
 List<Widget> plots = [];
 
-
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key, required this.title} );
   final String title;
@@ -32,20 +31,20 @@ class IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       primary: true,
       appBar: AppBar(
-        toolbarHeight: MediaQuery.of(context).size.height / 20,
+        // toolbarHeight: MediaQuery.of(context).size.height / 20,
         automaticallyImplyLeading: false,
-        elevation: 0,
+        elevation: 16,
         title: Row(
           children: <Widget>[
             Container(
-                width: MediaQuery.of(context).size.width / 25,
-                height: MediaQuery.of(context).size.height / 20,
-                margin: const EdgeInsets.only(left:10, right:10),
-                child: SvgPicture.asset('assets/mmr.svg', colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn))
+              width: MediaQuery.of(context).size.width / 25,
+              height: MediaQuery.of(context).size.height / 20,
+              margin: const EdgeInsets.only(left:10, right:10),
+              child: SvgPicture.asset('assets/mmr.svg', colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn))
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width / 30,
-              height: MediaQuery.of(context).size.height / 20,
+              height: MediaQuery.of(context).size.height / 18,
               child: Image.asset('assets/coloredLogoBands.png', scale: 20,)
             ),
             Container(
@@ -69,21 +68,21 @@ class IntroScreenState extends State<IntroScreen> {
             child: Text(fileName?? "", style: TextStyle(fontSize: MediaQuery.of(context).size.height / 60),)
           ),
           VerticalDivider(
-              width: 1,
-              thickness: 0.5,
-              indent: MediaQuery.of(context).size.height / 150,
-              endIndent: MediaQuery.of(context).size.height / 150,
-              color: Colors.white,
+            width: 1,
+            thickness: 0.5,
+            indent: MediaQuery.of(context).size.height / 150,
+            endIndent: MediaQuery.of(context).size.height / 150,
+            color: Colors.white,
           ),
           Container(
             alignment: Alignment.center,
             padding: EdgeInsets.only(left: MediaQuery.of(context).size.width/ 100, right: MediaQuery.of(context).size.width/ 100),
             child: IconButton(
               alignment: Alignment.center,
-              // splashColor: Colors.transparent,
-              // highlightColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
               hoverColor: Colors.transparent,
-              icon: Icon(Icons.add_sharp, color: Colors.white, size: MediaQuery.of(context).size.height / 25,),
+              icon: Icon(Icons.add_sharp, color: Colors.white, size: MediaQuery.of(context).size.height / 30,),
               padding: const EdgeInsets.all(0),
               tooltip: 'Open new csv file',
               onPressed: () => openFile()
@@ -115,14 +114,14 @@ class IntroScreenState extends State<IntroScreen> {
       ),
       endDrawer: Container(
         width: MediaQuery.of(context).size.width / 5,
-        padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height / 20),
+        padding:  const EdgeInsets.only(top: 57),
         child:  const MenuDrawer(),
       ),
       body: Container(
         color: const Color.fromRGBO(18, 18, 18, 1),
         child: Container(
           color: const Color.fromRGBO(18, 18, 18, 1),
-          margin:  EdgeInsets.only(top:10 , bottom: 10),
+          margin:  EdgeInsets.only(top: MediaQuery.of(context).size.height / 80 , bottom: MediaQuery.of(context).size.height / 100),
           child:  ListView(
             children: const [
               Plot(),
@@ -223,14 +222,8 @@ class IntroScreenState extends State<IntroScreen> {
             title: Row(
               children: <Widget>[
                 Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
-                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)),
-                // const VerticalDivider(
-                //   width: 10,
-                //   thickness: 0.5,
-                //   indent: 2,
-                //   endIndent: 2,
-                //   color: Colors.white,
-                // ),
+                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
+                ),
                 Container(
                   margin: const EdgeInsets.only(right:5,left:5),
                   height: 20,
@@ -241,7 +234,6 @@ class IntroScreenState extends State<IntroScreen> {
                     style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
                   ),
                 ),
-
               ]
             ),
             onTap: (){},
