@@ -132,10 +132,10 @@ class IntroScreenState extends State<IntroScreen> {
                         shrinkWrap: true,
                         padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
                         children: [
-                          Plot(),
-                          Plot(),
-                          Plot(),
-                          Plot(),
+                          const TelemetryPlot(),
+                          const TelemetryPlot(),
+                          const TelemetryPlot(),
+                          const TelemetryPlot(),
                         ]
                       )) ,
                 Expanded(
@@ -239,27 +239,40 @@ class IntroScreenState extends State<IntroScreen> {
     if(channels != null){
       if(channels.isNotEmpty){
         for (Channel channel in channels) {
-          menuItems.add(ListTile(
-            key: Key(channel.name),
-            title: Row(
-              children: <Widget>[
-                Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
-                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
+          menuItems.add(Draggable(
+            data: <Channel>[channels[0], channel],
+            feedback: Container(
+                alignment: Alignment.center,
+                margin: const EdgeInsets.all(8),
+                color: Colors.blueGrey.shade900,
+                height: 30,
+                child: DefaultTextStyle(
+                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300),
+                  child: Text('  ${channel.name}  '),
                 ),
-                Container(
-                  margin: const EdgeInsets.only(right:5,left:5),
-                  height: 20,
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '[ ${channel.unit} ]',
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
-                  ),
-                ),
-              ]
             ),
-            onTap: (){},
-            )
+            child: ListTile(
+              key: Key(channel.name),
+              title: Row(
+                children: <Widget>[
+                  Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
+                    style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(right:5,left:5),
+                    height: 20,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '[ ${channel.unit} ]',
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
+                    ),
+                  ),
+                ]
+              ),
+              onTap: (){},
+              ),
+          )
           );
         }
       }
