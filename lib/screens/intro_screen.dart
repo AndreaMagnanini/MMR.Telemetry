@@ -29,11 +29,12 @@ class IntroScreenState extends State<IntroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       primary: true,
       appBar: AppBar(
         // toolbarHeight: MediaQuery.of(context).size.height / 20,
         automaticallyImplyLeading: false,
-        elevation: 16,
+        elevation: 0,
         title: Row(
           children: <Widget>[
             Container(
@@ -44,7 +45,7 @@ class IntroScreenState extends State<IntroScreen> {
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width / 30,
-              height: MediaQuery.of(context).size.height / 18,
+              height: MediaQuery.of(context).size.height / 15,
               child: Image.asset('assets/coloredLogoBands.png', scale: 20,)
             ),
             Container(
@@ -63,7 +64,8 @@ class IntroScreenState extends State<IntroScreen> {
         actions:
         <Widget>[
           Container(
-            padding: EdgeInsets.only(right: MediaQuery.of(context).size.width/ 100, top: MediaQuery.of(context).size.width/ 120),
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(right: MediaQuery.of(context).size.width/ 100, ),
             height: MediaQuery.of(context).size.height / 20,
             child: Text(fileName?? "", style: TextStyle(fontSize: MediaQuery.of(context).size.height / 60),)
           ),
@@ -118,20 +120,40 @@ class IntroScreenState extends State<IntroScreen> {
         child:  const MenuDrawer(),
       ),
       body: Container(
+        height: MediaQuery.of(context).size.height - 56,
         color: const Color.fromRGBO(18, 18, 18, 1),
-        child: Container(
-          color: const Color.fromRGBO(18, 18, 18, 1),
-          margin:  EdgeInsets.only(top: MediaQuery.of(context).size.height / 80 , bottom: MediaQuery.of(context).size.height / 100),
-          child:  ListView(
-            children: const [
-              Plot(),
-              Plot(),
-              Plot(),
-              Plot()
-            ]
+          // child: SingleChildScrollView(
+            child: Column(
+                  children: [
+                    Expanded(
+                      flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
+                      child: ListView(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
+                        children: [
+                          Plot(),
+                          Plot(),
+                          Plot(),
+                          Plot(),
+                        ]
+                      )) ,
+                Expanded(
+                  flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: MediaQuery.of(context).size.height / 80,
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.blueGrey.shade900,
+                  // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
+                  child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
+                )
+              ],
+            )
           )
-        )
-      )
+
+
+
     );
   }
 

@@ -178,7 +178,7 @@ class PlotState extends State<Plot> {
     return Container(
       margin: const EdgeInsets.only(top:1, right: 20, left:20 ),
       width: MediaQuery.of(context).size.width / 6,
-      height:MediaQuery.of(context).size.height / 4.4,
+      height:MediaQuery.of(context).size.height / 4.53,
       decoration:  BoxDecoration(
         boxShadow:  [BoxShadow(color: Colors.blueGrey.shade400, spreadRadius: 1),],
         borderRadius: BorderRadius.circular(6.0),
