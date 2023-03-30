@@ -63,22 +63,23 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
                       alignment: Alignment.center,
                       height:30,
                       width: MediaQuery.of(context).size.width / 8,
-                      child: Text("Empty plot", style: TextStyle(fontSize: 15, color: Colors.white, backgroundColor: Colors.blueGrey.shade700, ),),
+                      child: Text(channels.isEmpty ? "Empty plot" : unit!, style: TextStyle(fontSize: 15, color: Colors.white, backgroundColor: Colors.blueGrey.shade700, ),),
                     ),
                     Expanded(
                       child: ListView(
                         children: channels.map((channel) => ListTile(
+                          dense: true,
                           visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+                          leading: Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(color: colors[channels.indexOf(channel)], borderRadius: BorderRadius.circular(10))
+                          ),
+                          trailing:
+                            IconButton(onPressed: () => remove(channel.name), icon: const Icon(Icons.delete_sharp, color: Colors.white, size: 18,), padding: EdgeInsets.zero,),
                           title: Container(
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                IconButton(onPressed: () => remove(channel.name), icon: const Icon(Icons.delete_sharp, color: Colors.white, size: 18,)),
-                                const VerticalDivider(width: 5, indent: 2, endIndent: 2, color: Colors.white, thickness: 3,),
-                                Text('${channel.name} [ ${channel.unit} ]', style: TextStyle(color: colors[channels.indexOf(channel)], fontWeight: FontWeight.w200, fontSize: 14),)
-                              ],
+                            alignment: Alignment.centerLeft,
+                            child: Text('${channel.name}', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200, fontSize: 14, )
                             ),
                           )
                         )).toList()
