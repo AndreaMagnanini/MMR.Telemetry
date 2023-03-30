@@ -122,38 +122,34 @@ class IntroScreenState extends State<IntroScreen> {
       body: Container(
         height: MediaQuery.of(context).size.height - 56,
         color: const Color.fromRGBO(18, 18, 18, 1),
-          // child: SingleChildScrollView(
-            child: Column(
-                  children: [
-                    Expanded(
-                      flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
-                      child: ListView(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
-                        children: [
-                          const TelemetryPlot(),
-                          const TelemetryPlot(),
-                          const TelemetryPlot(),
-                          const TelemetryPlot(),
-                        ]
-                      )) ,
-                Expanded(
-                  flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
-                  child: Container(
-                    alignment: Alignment.center,
-                    height: MediaQuery.of(context).size.height / 80,
-                    width: MediaQuery.of(context).size.width,
-                    color: Colors.blueGrey.shade900,
-                  // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
-                  child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
-                )
-              ],
+        child: Column(
+          children: [ Expanded(
+            flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
+            child: ListView(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
+              children: [
+                TelemetryPlot(),
+                TelemetryPlot(),
+                TelemetryPlot(),
+                TelemetryPlot(),
+              ]
             )
+          ) ,
+          Expanded(
+            flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
+            child: Container(
+              alignment: Alignment.center,
+              height: MediaQuery.of(context).size.height / 80,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.blueGrey.shade900,
+            // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
+            child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
           )
-
-
-
+          ],
+        )
+      )
     );
   }
 
@@ -234,46 +230,49 @@ class IntroScreenState extends State<IntroScreen> {
   }
 
   void buildMenuItems(){
-    // TODO: implement draggable ListTile
     menuItems.clear();
     if(channels != null){
       if(channels.isNotEmpty){
         for (Channel channel in channels) {
-          menuItems.add(Draggable(
-            data: <Channel>[channels[0], channel],
-            feedback: Container(
-                alignment: Alignment.center,
-                margin: const EdgeInsets.all(8),
-                color: Colors.blueGrey.shade900,
-                height: 30,
-                child: DefaultTextStyle(
-                  style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300),
-                  child: Text('  ${channel.name}  '),
-                ),
-            ),
-            child: ListTile(
+          menuItems.add( Builder(
               key: Key(channel.name),
-              title: Row(
-                children: <Widget>[
-                  Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
-                    style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(right:5,left:5),
-                    height: 20,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      '[ ${channel.unit} ]',
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
+              builder: (context) {
+                return Draggable(
+                  data: <Channel>[channels[0], channel],
+                  onDragStarted: () => Scaffold.of(context).closeEndDrawer(),
+                  feedback: Container(
+                    alignment: Alignment.center,
+                    margin: const EdgeInsets.all(8),
+                    color: Colors.blueGrey.shade900,
+                    height: 30,
+                    child: DefaultTextStyle(
+                      style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300),
+                      child: Text('  ${channel.name}  '),
                     ),
                   ),
-                ]
-              ),
-              onTap: (){},
-              ),
-          )
-          );
+                  child: ListTile(
+                    title: Row(
+                        children: <Widget>[
+                          Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
+                              style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(right:5,left:5),
+                            height: 20,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                                '[ ${channel.unit} ]',
+                                textAlign: TextAlign.end,
+                                style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
+                            ),
+                          ),
+                        ]
+                    ),
+                    onTap: (){},
+                  ),
+                );
+              }
+          ));
         }
       }
     }
@@ -368,7 +367,6 @@ class MenuDrawerState extends State<MenuDrawer> {
   bool searchFilter = false;
   bool unitFilter = false;
 
-  // TODO: fix list updating on filter value changes
   @override
   void initState() {
     displayedUnits.add('all');
