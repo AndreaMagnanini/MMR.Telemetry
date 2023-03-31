@@ -6,6 +6,7 @@ import 'channel.dart';
 class TelemetrySeries{
   TelemetrySeries(double this.t, double this.y, this.channelName);
   String channelName;
+  Color? color;
   double? t;
   double? y;
 }
@@ -73,7 +74,7 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
                           leading: Container(
                             width: 15,
                             height: 15,
-                            decoration: BoxDecoration(color: colors[channels.indexOf(channel)], borderRadius: BorderRadius.circular(10))
+                            decoration: BoxDecoration(color: lineSeries[channels.indexOf(channel)].color, borderRadius: BorderRadius.circular(10))
                           ),
                           trailing:
                             IconButton(onPressed: () => remove(channel.name), icon: const Icon(Icons.delete_sharp, color: Colors.white, size: 18,), padding: EdgeInsets.zero,),
@@ -112,6 +113,7 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
                     labelPosition: ChartDataLabelPosition.inside,
                     axisBorderType: AxisBorderType.withoutTopAndBottom,
                   ),
+                  zoomPanBehavior: ZoomPanBehavior(enableSelectionZooming: true, enableDoubleTapZooming: false, enablePanning: false, enableMouseWheelZooming: true, enablePinching: false, zoomMode: ZoomMode.xy),
                   crosshairBehavior: CrosshairBehavior(enable:true, shouldAlwaysShow: true, activationMode: ActivationMode.singleTap ),
                   series: lineSeries,
                 )
@@ -132,8 +134,8 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
         unit = newChannel[1].unit;
         channels.add(newChannel[1]);
         List<TelemetrySeries> newList = [];
-        for(double value in newChannel[1].values){
-          newList.add(TelemetrySeries(newChannel[0].values[newChannel[1].values.indexOf(value)], value, newChannel[1].name));
+        for(int i=0; i < newChannel[1].values.length; i++){
+          newList.add(TelemetrySeries(newChannel[0].values[i], newChannel[1].values[i], newChannel[1].name));
         }
         series.add(newList);
         lineSeries.add(FastLineSeries<TelemetrySeries, double>(
@@ -152,8 +154,26 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
         return;
       }
       if(newChannel[1].unit == unit){
+        if(channels.contains(newChannel[1])){
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Selected channel is already displayed in this plot')));
+          return;
+        }
         setState(() {
           channels.add(newChannel[1]);
+          List<TelemetrySeries> newList = [];
+          for(int i=0; i < newChannel[1].values.length; i++){
+            newList.add(TelemetrySeries(newChannel[0].values[i], newChannel[1].values[i], newChannel[1].name));
+          }
+          series.add(newList);
+          lineSeries.add(FastLineSeries<TelemetrySeries, double>(
+              key: ValueKey(newChannel[1].name),
+              width: 0.5,
+              color: assignColor(newChannel[1]),
+              dataSource: series[series.indexOf(newList)],
+              xValueMapper: (TelemetrySeries series, _) => series.t,
+              yValueMapper: (TelemetrySeries series, _) => series.y
+          ));
         });
       }
       else{
@@ -164,7 +184,7 @@ class _TelemetryPlotState extends State<TelemetryPlot> {
   }
   void remove(String channelName){
     setState(() {
-      // lineSeries.remove(lineSeries.firstWhere((series) => series.key.toString().replaceAll("[<'", '').replaceAll("'>]", '') == channelName));
+      lineSeries.remove(lineSeries.firstWhere((series) => series.key.toString().replaceAll("[<'", '').replaceAll("'>]", '') == channelName));
       channels.remove(channels.firstWhere((channel) => channel.name == channelName));
     });
   }
