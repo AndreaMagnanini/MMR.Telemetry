@@ -1,10 +1,12 @@
 
+import 'dart:convert';
+
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mmr_telemetry/screens/chartsPage.dart';
 import 'dart:io';
-import '../telemetry/TelemetryPlot.dart';
 import '../telemetry/channel.dart';
 
 List<List<dynamic>> data = [];
@@ -31,6 +33,7 @@ class IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       primary: true,
+      // TODO: reduce app bar height and make more responsive
       appBar: AppBar(
         // toolbarHeight: MediaQuery.of(context).size.height / 20,
         automaticallyImplyLeading: false,
@@ -119,37 +122,8 @@ class IntroScreenState extends State<IntroScreen> {
         padding:  const EdgeInsets.only(top: 57),
         child:  const MenuDrawer(),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height - 56,
-        color: const Color.fromRGBO(18, 18, 18, 1),
-        child: Column(
-          children: [ Expanded(
-            flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
-            child: ListView(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
-              children: [
-                TelemetryPlot(),
-                TelemetryPlot(),
-                TelemetryPlot(),
-                TelemetryPlot(),
-              ]
-            )
-          ) ,
-          Expanded(
-            flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
-            child: Container(
-              alignment: Alignment.center,
-              height: MediaQuery.of(context).size.height / 80,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.blueGrey.shade900,
-            // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
-            child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
-          )
-          ],
-        )
-      )
+      // TODO: implement pages containing 4 plots each. Add new pages and give a name or change name to a new page.
+      body: const ChartPage()
     );
   }
 
@@ -169,19 +143,22 @@ class IntroScreenState extends State<IntroScreen> {
     final file = result.files.first;
     if (!file.name.contains("csv")){
       // ignore: use_build_context_synchronously
-      print("error opening or parsing file");
       ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Only CSV file are supported. Try opening another file.')));
       return;
     }
+    var stopwatch = Stopwatch();
+    stopwatch.start();
     try{
       await parseFile(file).then((value) => {
         setState((){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Opened file $value")));
+          stopwatch.stop();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Opened file $value in ${(stopwatch.elapsedMilliseconds / 1000)} seconds.")));
           fileName = value;
         })
       });
     } on Exception catch(e){
+      stopwatch.stop();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
@@ -189,43 +166,68 @@ class IntroScreenState extends State<IntroScreen> {
   Future<String> parseFile(PlatformFile file) async {
     print("Opening the csv file");
     var csv = File(file.path!);
-    csv.readAsLines().then((List<String> lines) {
-
-      // REMOVE HEADING FROM CSV FILE.
-      List<int> indexes = [];
-      for (var line in lines) {
-        if (!line.startsWith('x')) { indexes.add(lines.indexOf(line)); }
-        else { break; }
-      }
-      for (var index in indexes.reversed) { lines.removeAt(index); }
-
-      // RECOMPOSE CLEANED FILE STRING.
-      final csvString = lines.join('\n');
-
-      setState((){
-        var parsedValues = const CsvToListConverter(eol:'\n').convert(csvString);
-        if(parsedValues.isEmpty) { throw Exception("CSV file correctly opened, but failed to parse into list of values"); }
-        else {
-          data = parsedValues;
-          if(data != null){
-            if(data.isNotEmpty){
-              channels.clear();
+    try {
+      var fileStrings = sanitizeFileEncoding(csv).split('\n');
+      // csv.readAsLines(encoding: utf8).then((List<String> lines) {
+        // REMOVE HEADING FROM CSV FILE.
+        List<int> indexes = [];
+        for (var line in fileStrings) {
+          if (line.isNotEmpty){
+            if (line[0] == '\"') {
+              var cleanedLine = line.replaceAll('\"', '');
+              if (!cleanedLine.startsWith('x')){
+                fileStrings[fileStrings.indexOf(line)] = cleanedLine.replaceAll(',', '.');
+              }
+              else{
+                fileStrings[fileStrings.indexOf(line)] = cleanedLine;
+              }
             }
           }
-
-          buildChannels();
-          if(channels!=null){
-            if(channels.isNotEmpty){
-              data.clear();
-            }
-          }
-
-          buildMenuItems();
-          units = buildUnitsFilter();
         }
-      });
-    });
+        for (var line in fileStrings) {
+          if (!line.startsWith('x')) {
+            indexes.add(fileStrings.indexOf(line));
+          }
+          else {
+            break;
+          }
+        }
+        for (var index in indexes.reversed) {
+          fileStrings.removeAt(index);
+        }
 
+        // RECOMPOSE CLEANED FILE STRING.
+        final csvString = fileStrings.join('\n').replaceAll('\t', ',');
+
+        setState(() {
+          var parsedValues = const CsvToListConverter(eol: '\n').convert(
+              csvString);
+          if (parsedValues.isEmpty) {
+            throw Exception(
+                "CSV file correctly opened, but failed to parse into list of values");
+          }
+          else {
+            data = parsedValues;
+            if (data != null) {
+              if (data.isNotEmpty) {
+                channels.clear();
+              }
+            }
+
+            buildChannels();
+            if (channels != null) {
+              if (channels.isNotEmpty) {
+                data.clear();
+              }
+            }
+
+            buildMenuItems();
+            units = buildUnitsFilter();
+          }
+        });
+    }on Exception catch(e){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ERROR: unable to open file in the correct encoding, or parsing all bytes.')));
+    }
     return file.name;
   }
 
@@ -235,43 +237,43 @@ class IntroScreenState extends State<IntroScreen> {
       if(channels.isNotEmpty){
         for (Channel channel in channels) {
           menuItems.add( Builder(
-              key: Key(channel.name),
-              builder: (context) {
-                return Draggable(
-                  data: <Channel>[channels[0], channel],
-                  onDragStarted: () => Scaffold.of(context).closeEndDrawer(),
-                  feedback: Container(
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.all(8),
-                    color: Colors.blueGrey.shade900,
-                    height: 30,
-                    child: DefaultTextStyle(
-                      style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300),
-                      child: Text('  ${channel.name}  '),
-                    ),
+            key: Key(channel.name),
+            builder: (context) {
+              return Draggable(
+                data: <Channel>[channels[0], channel],
+                onDragStarted: () => Scaffold.of(context).closeEndDrawer(),
+                feedback: Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.all(8),
+                  color: Colors.blueGrey.shade900,
+                  height: 30,
+                  child: DefaultTextStyle(
+                    style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300),
+                    child: Text('  ${channel.name}  '),
                   ),
-                  child: ListTile(
-                    title: Row(
-                        children: <Widget>[
-                          Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
-                              style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(right:5,left:5),
-                            height: 20,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                                '[ ${channel.unit} ]',
-                                textAlign: TextAlign.end,
-                                style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
-                            ),
-                          ),
-                        ]
-                    ),
-                    onTap: (){},
+                ),
+                child: ListTile(
+                  title: Row(
+                    children: <Widget>[
+                      Text(channel.name.length > 20 ? '${channel.name.substring(0, 16)} ...' : channel.name,
+                          style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w300)
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(right:5,left:5),
+                        height: 20,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '[ ${channel.unit} ]',
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(fontSize: 15, color: Colors.tealAccent, fontWeight: FontWeight.w500, )
+                        ),
+                      ),
+                    ]
                   ),
-                );
-              }
+                  onTap: (){},
+                ),
+              );
+            }
           ));
         }
       }
@@ -303,23 +305,42 @@ class IntroScreenState extends State<IntroScreen> {
     List<Channel> result = [];
     final RegExp regex = RegExp(r'\[(.*?)\]'); // '\[\s*(\w*)\s*\]'
     for (String channelName in data[0]){
+      var unit = regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "";
+      if((unit.contains('°CR') && unit.length > 3) || (unit.contains('°C') && unit.length > 2)){
+        unit = unit.substring(1, unit.length);
+      }
       result.add(Channel(
         channelName.split('[')[0].replaceAll(' ', ''),
-        regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "",
+        unit,
         data[0].indexOf(channelName))
       );
     }
 
-    data.remove(data[0]);
-    if(data[1][0] == 0.001) reduceData();
-    for (List<dynamic> row in data){
-      for (Channel channel in result){
-        channel.values.add(row[channel.index] is int? row[channel.index].toDouble() : row[channel.index]);
+    try{
+      data.remove(data[0]);
+      if(data[1][0] == 0.001) reduceData();
+      for (List<dynamic> row in data){
+        for (Channel channel in result){
+          // if(row[channel.index] is! double){
+          //   print("velue ${row[channel.index]} is ${row[channel.index].runtimeType}");
+          // }
+          if(row[channel.index] is int){
+            channel.values.add(row[channel.index].toDouble());
+          }
+          else if (row[channel.index] is String){
+            channel.values.add(double.parse(row[channel.index]));
+          }
+          else if(row[channel.index] is double){
+            channel.values.add(row[channel.index]);
+          }
+        }
       }
+      setState(() {
+        channels = result;
+      });
+    } on Exception catch(e){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ERROR: Unable to parse channel values as double.')));
     }
-    setState(() {
-      channels = result;
-    });
   }
 
   void reduceData(){
@@ -333,6 +354,13 @@ class IntroScreenState extends State<IntroScreen> {
         data.removeAt(index);
       }
     }
+  }
+
+  String sanitizeFileEncoding(File csv) {
+    var bytes = csv.readAsBytesSync();
+    var utf8CodeUnits = bytes.buffer.asUint8List();
+    var fileString = String.fromCharCodes(utf8CodeUnits);
+    return fileString;
   }
 }
 

@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  charset_converter:
+    dependency: "direct main"
+    description:
+      name: charset_converter
+      sha256: e4827b2d623ab75c2b6767d69e03485ea5bc894db6f6bdcb2ffeda58446bbe26
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   cli_util:
     dependency: transitive
     description:
