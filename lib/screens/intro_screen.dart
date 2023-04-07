@@ -3,8 +3,8 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mmr_telemetry/screens/chartsPage.dart';
 import 'dart:io';
-import '../telemetry/TelemetryPlot.dart';
 import '../telemetry/channel.dart';
 
 List<List<dynamic>> data = [];
@@ -31,6 +31,7 @@ class IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       primary: true,
+      // TODO: reduce app bar height and make more responsive
       appBar: AppBar(
         // toolbarHeight: MediaQuery.of(context).size.height / 20,
         automaticallyImplyLeading: false,
@@ -119,37 +120,8 @@ class IntroScreenState extends State<IntroScreen> {
         padding:  const EdgeInsets.only(top: 57),
         child:  const MenuDrawer(),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height - 56,
-        color: const Color.fromRGBO(18, 18, 18, 1),
-        child: Column(
-          children: [ Expanded(
-            flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
-            child: ListView(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
-              children: [
-                TelemetryPlot(),
-                TelemetryPlot(),
-                TelemetryPlot(),
-                TelemetryPlot(),
-              ]
-            )
-          ) ,
-          Expanded(
-            flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
-            child: Container(
-              alignment: Alignment.center,
-              height: MediaQuery.of(context).size.height / 80,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.blueGrey.shade900,
-            // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
-            child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
-          )
-          ],
-        )
-      )
+      // TODO: implement pages containing 4 plots each. Add new pages and give a name or change name to a new page.
+      body: const ChartPage()
     );
   }
 
@@ -169,7 +141,6 @@ class IntroScreenState extends State<IntroScreen> {
     final file = result.files.first;
     if (!file.name.contains("csv")){
       // ignore: use_build_context_synchronously
-      print("error opening or parsing file");
       ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Only CSV file are supported. Try opening another file.')));
       return;
