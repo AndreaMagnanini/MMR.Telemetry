@@ -147,14 +147,18 @@ class IntroScreenState extends State<IntroScreen> {
       const SnackBar(content: Text('Only CSV file are supported. Try opening another file.')));
       return;
     }
+    var stopwatch = Stopwatch();
+    stopwatch.start();
     try{
       await parseFile(file).then((value) => {
         setState((){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Opened file $value")));
+          stopwatch.stop();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Opened file $value in ${(stopwatch.elapsedMilliseconds / 1000)} seconds.")));
           fileName = value;
         })
       });
     } on Exception catch(e){
+      stopwatch.stop();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
@@ -162,7 +166,6 @@ class IntroScreenState extends State<IntroScreen> {
   Future<String> parseFile(PlatformFile file) async {
     print("Opening the csv file");
     var csv = File(file.path!);
-
     try {
       var fileStrings = sanitizeFileEncoding(csv).split('\n');
       // csv.readAsLines(encoding: utf8).then((List<String> lines) {
