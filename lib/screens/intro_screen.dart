@@ -173,14 +173,18 @@ class IntroScreenState extends State<IntroScreen> {
         List<int> indexes = [];
         for (var line in fileStrings) {
           if (line.isNotEmpty){
+            var cleanedLine = "";
             if (line[0] == '\"') {
-              var cleanedLine = line.replaceAll('\"', '');
-              if (!cleanedLine.startsWith('x')){
-                fileStrings[fileStrings.indexOf(line)] = cleanedLine.replaceAll(',', '.');
-              }
-              else{
-                fileStrings[fileStrings.indexOf(line)] = cleanedLine;
-              }
+              cleanedLine = line.replaceAll('\"', '');
+            }
+            else{
+              cleanedLine = line;
+            }
+            if (!cleanedLine.startsWith('x')){
+              fileStrings[fileStrings.indexOf(line)] = cleanedLine.replaceAll(',', '.');
+            }
+            else{
+              fileStrings[fileStrings.indexOf(line)] = cleanedLine;
             }
           }
         }
@@ -197,7 +201,7 @@ class IntroScreenState extends State<IntroScreen> {
         }
 
         // RECOMPOSE CLEANED FILE STRING.
-        final csvString = fileStrings.join('\n').replaceAll('\t', ',');
+        final csvString = fileStrings.join('\n').replaceAll('\t', ',').replaceAll(' ', '');
 
         setState(() {
           var parsedValues = const CsvToListConverter(eol: '\n').convert(
@@ -306,8 +310,11 @@ class IntroScreenState extends State<IntroScreen> {
     final RegExp regex = RegExp(r'\[(.*?)\]'); // '\[\s*(\w*)\s*\]'
     for (String channelName in data[0]){
       var unit = regex.firstMatch(channelName)?[0]?.replaceAll(' ', '').replaceAll('[',  '').replaceAll(']', '') ?? "";
-      if((unit.contains('°CR') && unit.length > 3) || (unit.contains('°C') && unit.length > 2)){
-        unit = unit.substring(1, unit.length);
+      if(unit.contains('CR')){
+        unit = '\u00B0CR';
+      }
+      if(unit.endsWith('C')){
+        unit = '\u00B0C';
       }
       result.add(Channel(
         channelName.split('[')[0].replaceAll(' ', ''),
