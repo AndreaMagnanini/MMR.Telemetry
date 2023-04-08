@@ -122,6 +122,7 @@ class TelemetryPlotState extends State<TelemetryPlot> {
                         width: (MediaQuery.of(context).size.width / 8) * 7 - 40,
                         height: MediaQuery.of(context).size.height / 4,
                         // TODO: make all 4 plots synchronized when zooming: same time axis range on zoom.
+                        // TODO: automatically update displayed values if channel is inside a plot and a new csv is opened
                         // TODO: add reset zoom button.
                         child: SfCartesianChart(
                           margin: const EdgeInsets.only(bottom:10, left: 1),
