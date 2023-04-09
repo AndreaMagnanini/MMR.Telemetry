@@ -181,7 +181,9 @@ class IntroScreenState extends State<IntroScreen> {
               cleanedLine = line;
             }
             if (!cleanedLine.startsWith('x')){
-              fileStrings[fileStrings.indexOf(line)] = cleanedLine.replaceAll(',', '.');
+              if(cleanedLine.contains('\t') || cleanedLine.contains(' ')){
+                fileStrings[fileStrings.indexOf(line)] = cleanedLine.replaceAll(',', '.');
+              }
             }
             else{
               fileStrings[fileStrings.indexOf(line)] = cleanedLine;
