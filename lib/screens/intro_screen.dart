@@ -123,7 +123,7 @@ class IntroScreenState extends State<IntroScreen> {
         child:  const MenuDrawer(),
       ),
       // TODO: implement pages containing 4 plots each. Add new pages and give a name or change name to a new page.
-      body: const ChartPage()
+      body: ChartPage()
     );
   }
 
