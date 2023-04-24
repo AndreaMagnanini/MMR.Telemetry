@@ -42,6 +42,7 @@ dependencies:
   csv: ^5.0.1
   syncfusion_flutter_charts: ^21.1.35
   charset_converter: ^2.1.1
+  shared_preferences: ^0.5.7+3
 
 dev_dependencies:
   flutter_test:

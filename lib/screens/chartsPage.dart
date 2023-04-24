@@ -74,13 +74,7 @@ class TelemetryPlotState extends State<TelemetryPlot> {
     super.initState();
   }
 
-  void chartResize(){//(double? newZoomF, double? newZoomP) {
-    // if(lineSeries.isNotEmpty){
-    //   setState(() {
-    //     zoomF = newZoomF;
-    //     zoomP = newZoomP;
-    //   });
-    // }
+  void chartResize(){
     setState(() {});
   }
 

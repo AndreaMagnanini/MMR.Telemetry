@@ -1,11 +1,11 @@
 
 import 'dart:convert';
-
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mmr_telemetry/screens/chartsPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../telemetry/channel.dart';
 
@@ -27,6 +27,17 @@ class IntroScreenState extends State<IntroScreen> {
   IntroScreenState(this.title);
   final String title;
   String? fileName;
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.setMockInitialValues({});
+    _prefs.then((SharedPreferences prefs) {
+      fileName = prefs.getString('filename');
+      RestoreData(prefs);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +175,7 @@ class IntroScreenState extends State<IntroScreen> {
   }
 
   Future<String> parseFile(PlatformFile file) async {
+    var prefs = await SharedPreferences.getInstance();
     print("Opening the csv file");
     var csv = File(file.path!);
     try {
@@ -204,6 +216,10 @@ class IntroScreenState extends State<IntroScreen> {
 
         // RECOMPOSE CLEANED FILE STRING.
         final csvString = fileStrings.join('\n').replaceAll('\t', ',').replaceAll(' ', '');
+        // save file string for restoring on new application launch
+        prefs.setString('csvString', csvString).then((bool success){
+          print("csv string persisted with success");
+        });
 
         setState(() {
           var parsedValues = const CsvToListConverter(eol: '\n').convert(
@@ -234,6 +250,11 @@ class IntroScreenState extends State<IntroScreen> {
     }on Exception catch(e){
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ERROR: unable to open file in the correct encoding, or parsing all bytes.')));
     }
+
+    // save file name for restoring on new application launch
+    prefs.setString('filename', file.name).then((bool success){
+      print("file name persisted with success");
+    });;
     return file.name;
   }
 
@@ -370,6 +391,42 @@ class IntroScreenState extends State<IntroScreen> {
     var utf8CodeUnits = bytes.buffer.asUint8List();
     var fileString = String.fromCharCodes(utf8CodeUnits);
     return fileString;
+  }
+
+  Future<void> RestoreData(SharedPreferences prefs) async {
+    var csvString = prefs.getString('csvString');
+    if (csvString.isNotEmpty){
+      try{
+        setState(() {
+          var parsedValues = const CsvToListConverter(eol: '\n').convert(
+              csvString);
+          if (parsedValues.isEmpty) {
+            throw Exception(
+                "CSV file correctly restored, but failed to parse into list of values");
+          }
+          else {
+            data = parsedValues;
+            if (data != null) {
+              if (data.isNotEmpty) {
+                channels.clear();
+              }
+            }
+
+            buildChannels();
+            if (channels != null) {
+              if (channels.isNotEmpty) {
+                data.clear();
+              }
+            }
+
+            buildMenuItems();
+            units = buildUnitsFilter();
+          }
+        });
+      } on Exception catch(e){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to restore data from previous session.")));
+      }
+    }
   }
 }
 

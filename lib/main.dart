@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      restorationScopeId: "root",
       title: 'MMR-Telemetry',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch().copyWith(
