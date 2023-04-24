@@ -127,7 +127,6 @@ class TelemetryPlotState extends State<TelemetryPlot> {
             SizedBox(
               width: (MediaQuery.of(context).size.width / 8) * 7 - 40,
               height: MediaQuery.of(context).size.height / 4,
-              // TODO: make all 4 plots synchronized when zooming: same time axis range on zoom.
               // TODO: automatically update displayed values if channel is inside a plot and a new csv is opened
               // TODO: add reset zoom button.
               child: SfCartesianChart(
@@ -277,7 +276,7 @@ class ChartListState extends State<ChartList> {
     return ListView(
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70, top: MediaQuery.of(context).size.height / 70),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 70),
       children: charts
     );
   }
@@ -294,24 +293,72 @@ class ChartPageState extends State<ChartPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: MediaQuery.of(context).size.height - 56,
-        color: const Color.fromRGBO(18, 18, 18, 1),
-        child: Column(
-          children: [ Expanded(
-              flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
-              child: ChartList()
-          ) ,
-            Expanded(
-                flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
-                child: Container(
-                    alignment: Alignment.center,
-                    height: MediaQuery.of(context).size.height / 80,
-                    width: MediaQuery.of(context).size.width,
-                    color: Colors.blueGrey.shade900,
-                    // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
-                    child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
-            )],
-        )
+      height: MediaQuery.of(context).size.height - 56,
+      color: const Color.fromRGBO(18, 18, 18, 1),
+      child: Column(
+        children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            margin: EdgeInsets.only(top:5, bottom: 5, left: 18),
+            child: Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+                  child: Text('reset'),
+                  onPressed: () {
+                    zoomF=0;
+                    zoomP=1;
+                    cartesianChartKey1.currentState!._zoomPanBehavior.reset();
+                    cartesianChartKey2.currentState!._zoomPanBehavior.reset();
+                    cartesianChartKey3.currentState!._zoomPanBehavior.reset();
+                    cartesianChartKey4.currentState!._zoomPanBehavior.reset();
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+                  child: Text('clear all'),
+                  onPressed: () {
+                    cartesianChartKey1.currentState!.lineSeries.clear();
+                    cartesianChartKey1.currentState!.series.clear();
+                    cartesianChartKey1.currentState!.channels.clear();
+
+                    cartesianChartKey2.currentState!.lineSeries.clear();
+                    cartesianChartKey2.currentState!.series.clear();
+                    cartesianChartKey2.currentState!.channels.clear();
+
+                    cartesianChartKey3.currentState!.lineSeries.clear();
+                    cartesianChartKey3.currentState!.series.clear();
+                    cartesianChartKey3.currentState!.channels.clear();
+
+                    cartesianChartKey4.currentState!.lineSeries.clear();
+                    cartesianChartKey4.currentState!.series.clear();
+                    cartesianChartKey4.currentState!.channels.clear();
+
+                    cartesianChartKey1.currentState!.chartResize();
+                    cartesianChartKey2.currentState!.chartResize();
+                    cartesianChartKey3.currentState!.chartResize();
+                    cartesianChartKey4.currentState!.chartResize();
+                  },
+                ),
+              ],
+            )
+          ),
+          Expanded(
+            flex: MediaQuery.of(context).size.height > 1000? 80 : 85,
+            child: ChartList()
+          ),
+          Expanded(
+            flex: MediaQuery.of(context).size.height > 1000? 2 : 1,
+            child: Container(
+              alignment: Alignment.center,
+              height: MediaQuery.of(context).size.height / 80,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.blueGrey.shade900,
+              // margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 80),
+              child: Text('mmr-driverless  2023', style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade100, fontWeight: FontWeight.normal), ) )
+          )
+        ],
+      )
     );
   }
 }
